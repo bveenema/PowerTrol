@@ -94,6 +94,7 @@ byte sensorMap[] = {1,2,0,0}; //0: Unregistered to Socket >0: Socket Number
 byte sensorType[] = {0,0,0,0}; //0: Undeclared 1:SparkFun Thermistor
 int SensorActual[Num_Sensors];
 int SensorTarget[] = {10,10,10,10};
+byte SensorTestMode[] = {1,0,0,0}; //0: ON/OFF 1: TargetforPerios
 boolean SensorOverUnderAlarm[] = {0,1,0,0}; //0: ALARM when Under 1: ALARM when Over
 boolean SensorAlarmState[Num_Sensors];
 
@@ -128,7 +129,7 @@ void setup(){
       SparkFunThermistor.SetUp();
       SparkFunThermistor.BitResolution=pow(2,10)-1;
       SparkFunThermistor.VoltageSupply = 5.0;
-      SparkFunThermistor.ResistanceFixed = 9800;
+      SparkFunThermistor.ResistanceFixed = 9800;  //9800
       SparkFunThermistor.NominalResistance = 10000;
       SparkFunThermistor.Offset = 0;
       SparkFunThermistor.NominalTemp = 25;
@@ -173,6 +174,8 @@ void loop(){
     }
   }
 
+  //
+
   //Read Sensors
   for(byte i=0;i<Num_Sensors;i++){
     boolean Sensor_Present = !digitalRead(Sensor_Switch[i]);
@@ -198,18 +201,10 @@ void loop(){
   for(byte i=0;i<Num_Sensors;i++){
     boolean Sensor_Present = !digitalRead(Sensor_Switch[i]);
     if(Sensor_Present == 1){
-      if(SensorOverUnderAlarm[i]){
-        if(SensorActual[i] > SensorTarget[i]){
-          SensorAlarmState[i] = 1;
-        }else{
-          SensorAlarmState[i] = 0;
-        }
-      }else{
-        if(SensorActual[i] < SensorTarget[i]){
-          SensorAlarmState[i] = 1;
-        }else{
-          SensorAlarmState[i] = 0;
-        }
+      if(SensorTestMode[i] == 0){
+        SensorAlarmState[i] = OnOff(SensorActual[i],SensorTarget[i],SensorOverUnderAlarm[i]);
+      }else if(SensorTestMode[i] == 1){
+        SensorAlarmState[i] = TargetforPeriod(SensorActual[i],SensorTarget[i],SensorOverUnderAlarm[i],110,2,2,120000);
       }
     }else{
       SensorAlarmState[i] = 0;
